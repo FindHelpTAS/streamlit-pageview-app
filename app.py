@@ -1,8 +1,14 @@
 import streamlit as st
 import matplotlib.pyplot as plt
 import numpy as np
+import geopandas as gpd
+import pandas as pd
+import seaborn as sns
+from shapely.geometry import Point
 
 # First graph: Total Pageviews Over Quarters in 2024
+st.title("Total Pageviews and Bounce Rate Over Quarters")
+
 # Data for pageviews
 quarters = ['Q1 2024', 'Q2 2024', 'Q3 2024']  # List of quarters
 pageviews = [70805, 52959, 59800]  # Pageviews data
@@ -23,8 +29,10 @@ ax1.set_ylabel('Total Pageviews', fontsize=12)
 ax1.grid(True)
 ax1.legend()
 
+# Display the first graph using Streamlit
+st.pyplot(fig1)
+
 # Second graph: Bounce Rate Over Quarters in 2024
-# Data for bounce rates
 bounce_rates = [36.84, 26.46, 18.00]  # Bounce rates as percentages
 
 # Calculate the median and average of the bounce rates
@@ -34,6 +42,8 @@ average_bounce_rate = np.mean(bounce_rates)
 # Create the second graph
 fig2, ax2 = plt.subplots(figsize=(8, 6))
 ax2.plot(quarters, bounce_rates, marker='o', linestyle='-', color='b')
+ax2.axhline(y=median_bounce_rate, color='r', linestyle='--', label=f'Median: {median_bounce_rate:.2f}%')
+ax2.axhline(y=average_bounce_rate, color='g', linestyle='-', label=f'Average: {average_bounce_rate:.2f}%')
 ax2.set_ylim(0, max(bounce_rates) + 10)
 ax2.set_title('Bounce Rate Over Quarters in 2024', fontsize=14)
 ax2.set_xlabel('Quarter', fontsize=12)
@@ -41,149 +51,123 @@ ax2.set_ylabel('Bounce Rate (%)', fontsize=12)
 ax2.grid(True)
 ax2.legend()
 
-# Display both graphs using Streamlit
-st.pyplot(fig1)  # Display the first graph
-st.pyplot(fig2)  # Display the second graph
+# Display the second graph using Streamlit
+st.pyplot(fig2)
 
-import streamlit as st
-import streamlit.components.v1 as components
+# Tasmania Heatmap Based on Sessions
+st.title("Tasmania Heatmap Based on Sessions")
 
-# Embed your HTML and JavaScript code in a string
-html_code = '''
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Google Maps Heatmap and Markers with Reverse Geocoding</title>
-    <script>
-        let map, heatmap;
+# Full dataset with Latitude, Longitude, and Sessions
+data = [
+    (-40.7606, 145.2955, 1.00154),
+    (-40.8459, 145.1250, 1.00154),
+    (-40.9897, 145.7262, 1.00540),
+    (-41.0558, 145.9038, 1.01465),
+    (-41.1056, 146.8261, 1.00309),
+    (-41.1226, 146.0732, 1.00077),
+    (-41.1480, 145.8330, 1.00000),
+    (-41.1578, 147.5173, 1.00540),
+    (-41.1603, 146.1824, 1.00231),
+    (-41.1750, 146.3188, 1.00000),
+    (-41.1769, 146.3515, 1.11415),
+    (-41.1879, 146.3866, 1.00231),
+    (-41.2352, 146.3511, 1.00077),
+    (-41.2464, 146.4246, 1.00309),
+    (-41.3203, 148.2389, 1.00077),
+    (-41.3960, 147.1319, 1.00463),
+    (-41.3995, 146.3390, 1.00154),
+    (-41.4167, 146.9333, 1.00000),
+    (-41.4388, 147.1347, 2.17079),
+    (-41.4388, 147.1347, 1.00000),
+    (-41.4388, 147.1347, 1.00000),
+    (-41.4388, 147.1347, 1.00154),
+    (-41.4388, 147.1347, 1.00000),
+    (-41.4560, 148.2610, 1.00000),
+    (-41.4713, 147.1595, 1.00077),
+    (-41.5006, 147.0736, 1.00077),
+    (-41.5159, 145.2148, 1.00000),
+    (-41.5248, 146.6570, 1.00154),
+    (-41.5291, 146.8391, 1.00077),
+    (-41.5723, 147.1710, 1.00000),
+    (-41.6051, 147.1189, 1.00309),
+    (-41.6164, 146.4238, 1.00154),
+    (-41.8743, 148.3024, 1.00000),
+    (-42.1228, 148.0743, 1.00000),
+    (-42.6648, 147.4232, 1.00154),
+    (-42.7500, 147.0667, 1.00000),
+    (-42.7667, 147.2500, 1.00000),
+    (-42.7826, 147.0587, 1.00463),
+    (-42.8125, 147.3547, 1.00000),
+    (-42.8288, 147.2730, 1.01234),
+    (-42.8425, 147.2959, 1.06324),
+    (-42.8472, 147.3563, 1.00231),
+    (-42.8509, 147.3039, 1.01465),
+    (-42.8586, 147.5053, 1.00077),
+    (-42.8620, 147.6552, 1.00077),
+    (-42.8741, 147.3160, 1.00154),
+    (-42.8755, 147.3703, 1.00154),
+    (-42.8794, 147.3294, 10.00000),
+    (-42.8794, 147.3294, 1.00231),
+    (-42.8794, 147.3294, 1.00848),
+    (-42.8794, 147.3294, 1.00154),
+    (-42.8794, 147.3294, 1.00617),
+    (-42.8794, 147.3294, 1.00463),
+    (-42.8794, 147.3294, 1.00077),
+    (-42.8794, 147.3294, 1.00154),
+    (-42.8794, 147.3294, 1.00154),
+    (-42.8794, 147.3294, 1.00077),
+    (-42.8794, 147.3294, 1.00463),
+    (-42.8794, 147.3294, 1.00000),
+    (-42.8794, 147.3294, 1.00154),
+    (-42.8794, 147.3294, 1.00154),
+    (-42.8794, 147.3294, 1.00077),
+    (-42.8933, 147.3170, 1.00077),
+    (-42.8945, 147.3244, 1.00000),
+    (-42.8962, 147.4453, 1.00077),
+    (-42.9073, 147.4938, 1.00077),
+    (-42.9333, 147.5000, 1.00077),
+    (-42.9567, 147.3407, 1.00077),
+    (-42.9578, 147.5315, 1.00000),
+    (-42.9764, 147.3035, 1.00309),
+    (-43.0017, 147.3189, 1.00000),
+    (-43.0281, 147.2626, 1.00231),
+    (-43.0312, 147.0481, 1.00077),
+    (-43.0971, 147.7433, 1.02082),
+    (-43.1323, 146.9763, 1.00000),
+    (-43.1458, 147.8437, 1.01543),
+    (-43.45, 169.8833, 1.00000),
+    (-40.7895, -74.0565, 1.00000)
+]
 
-        // Callback function to initialize the map after the script has loaded
-        function initMap() {
-            map = new google.maps.Map(document.getElementById("map"), {
-                zoom: 6,
-                center: { lat: -41.4388, lng: 147.1347 }, // Centered on Tasmania
-                mapTypeId: "terrain",
-            });
+# Convert the data to a pandas DataFrame
+df = pd.DataFrame(data, columns=['Latitude', 'Longitude', 'Sessions'])
 
-            // Create and add a legend for the heatmap
-            const legend = document.getElementById("legend");
-            map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
+# Create a GeoDataFrame
+geometry = [Point(xy) for xy in zip(df['Longitude'], df['Latitude'])]
+gdf = gpd.GeoDataFrame(df, geometry=geometry)
 
-            // Fetch the CSV data (replace this with your actual file path or API)
-            fetch('Cleaned_Council_Mapping.csv')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok ' + response.statusText);
-                    }
-                    return response.text();
-                })
-                .then(csvData => {
-                    const parsedData = parseCSV(csvData);
-                    createHeatmap(parsedData);
-                    createMarkers(parsedData);
-                })
-                .catch(error => console.error('Error fetching CSV data:', error));
-        }
+# Load a Tasmania map (or Australia map) using GeoPandas
+world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
 
-        // Parse CSV Data
-        function parseCSV(csvData) {
-            const rows = csvData.trim().split('\\n').slice(1); // Skip header row
-            const locations = rows.map(row => {
-                const [lat, lng, sessions] = row.split(',');
-                return {
-                    lat: parseFloat(lat),
-                    lng: parseFloat(lng),
-                    sessions: parseInt(sessions),
-                };
-            });
-            return locations;
-        }
+# Filter for Australia (Tasmania included)
+australia = world[world.name == "Australia"]
 
-        // Heatmap Layer
-        function createHeatmap(locations) {
-            const heatmapData = locations.map(location => ({
-                location: new google.maps.LatLng(location.lat, location.lng),
-                weight: location.sessions,
-            }));
-            heatmap = new google.maps.visualization.HeatmapLayer({
-                data: heatmapData,
-                radius: 70, // Adjust radius to better visualize smaller points
-                opacity: 0.7,
-                gradient: [
-                    'rgba(239,251,16,0)',
-                    'rgba(241,221,14,1)',
-                    'rgba(243,194,13,1)',
-                    'rgba(244,174,12,1)',
-                    'rgba(245,159,11,1)',
-                    'rgba(246,139,10,1)',
-                    'rgba(247,124,9,1)',
-                    'rgba(248,107,8,1)',
-                    'rgba(249,90,7,1)',
-                    'rgba(250,75,6,1)',
-                    'rgba(251,55,5,1)',
-                    'rgba(252,40,4,1)',
-                    'rgba(253,30,4,1)',
-                    'rgba(253,18,4,1)',
-                    'rgba(253,13,4,1)',
-                    'rgba(254,3,3,1)',
-                ],
-                map: map,
-            });
-        }
-    </script>
-    <style>
-        #map {
-            height: 500px;
-            width: 100%;
-        }
+# Plot Tasmania with the heatmap-like effect
+fig3, ax3 = plt.subplots(figsize=(10, 10))
 
-        #legend {
-            background: white;
-            padding: 10px;
-            margin: 10px;
-            font-family: Arial, sans-serif;
-            font-size: 12px;
-            font-weight: bold;
-        }
+# Plot Australia for context
+australia.plot(ax=ax3, color='lightgrey')
 
-        #legend .title {
-            margin-bottom: 5px;
-        }
+# Create a heatmap using Seaborn on the latitude and longitude points
+sns.kdeplot(df['Longitude'], df['Latitude'], cmap="Blues", shade=True, bw_adjust=0.5, ax=ax3)
 
-        #legend .gradient {
-            background: linear-gradient(to right, rgb(239, 251, 16), rgba(254, 3, 3, 1));
-            height: 15px;
-            width: 200px;
-            margin-bottom: 5px;
-        }
+# Plot the points with their intensities
+gdf.plot(ax=ax3, markersize=gdf['Sessions'] * 50, color='red', alpha=0.5)
 
-        #legend .scale {
-            display: flex;
-            justify-content: space-between;
-        }
-    </style>
-</head>
+# Set title and labels
+ax3.set_title("Tasmania Heatmap Based on Sessions")
+ax3.set_xlabel("Longitude")
+ax3.set_ylabel("Latitude")
 
-<body>
-    <div id="map"></div>
-
-    <!-- Legend for Heatmap -->
-    <div id="legend">
-        <div class="title">Heatmap Intensity</div>
-        <div class="gradient"></div>
-        <div class="scale">
-            <span>1</span>
-            <span>12,000</span>
-        </div>
-    </div>
-
-    <!-- Load the Google Maps JavaScript API asynchronously -->
-    <script
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJDGu-1xitUVcPe7Hgo412Rjik-9hO7qc&libraries=visualization&callback=initMap"
-        async defer></script>
-</body>
-</html>
-'''
-
-# Use Streamlit to render the HTML
-components.html(html_code, height=600)
+# Display the Tasmania heatmap using Streamlit
+st.pyplot(fig3)
