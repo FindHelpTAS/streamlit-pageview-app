@@ -54,13 +54,6 @@ ax2.legend()
 # Display the second graph using Streamlit
 st.pyplot(fig2)
 
-import geopandas as gpd
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-from shapely.geometry import Point
-import streamlit as st
-
 # Function to download and load the Natural Earth dataset
 @st.cache_data
 def load_natural_earth_data():
@@ -170,7 +163,7 @@ fig3, ax = plt.subplots(figsize=(10, 10))
 australia.plot(ax=ax, color='lightgrey')
 
 # Create a heatmap using Seaborn on the latitude and longitude points
-sns.kdeplot(df['Longitude'], df['Latitude'], cmap="Blues", shade=True, bw_adjust=0.5, ax=ax)
+sns.kdeplot(x=df['Longitude'], y=df['Latitude'], cmap="Blues", shade=True, bw_adjust=0.5, ax=ax)
 
 # Plot the points with their intensities
 gdf.plot(ax=ax, markersize=gdf['Sessions'] * 50, color='red', alpha=0.5)
