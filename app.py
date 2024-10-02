@@ -72,7 +72,7 @@ def load_natural_earth_data():
 world = load_natural_earth_data()
 
 # Filter for Australia (Tasmania included)
-australia = world[SOVEREIGNT.name == "Australia"]
+australia = world[world.SOVEREIGNT == "Australia"]
 
 # Full dataset with Latitude, Longitude, and Sessions
 data = [
