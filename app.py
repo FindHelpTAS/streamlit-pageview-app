@@ -54,8 +54,25 @@ ax2.legend()
 # Display the second graph using Streamlit
 st.pyplot(fig2)
 
-# Tasmania Heatmap Based on Sessions
-st.title("Tasmania Heatmap Based on Sessions")
+import geopandas as gpd
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from shapely.geometry import Point
+import streamlit as st
+
+# Function to download and load the Natural Earth dataset
+@st.cache_data
+def load_natural_earth_data():
+    url = "https://naturalearth.s3.amazonaws.com/110m_cultural/ne_110m_admin_0_countries.zip"
+    world = gpd.read_file(url)
+    return world
+
+# Load the Natural Earth data (Australia map)
+world = load_natural_earth_data()
+
+# Filter for Australia (Tasmania included)
+australia = world[world.name == "Australia"]
 
 # Full dataset with Latitude, Longitude, and Sessions
 data = [
@@ -146,28 +163,22 @@ df = pd.DataFrame(data, columns=['Latitude', 'Longitude', 'Sessions'])
 geometry = [Point(xy) for xy in zip(df['Longitude'], df['Latitude'])]
 gdf = gpd.GeoDataFrame(df, geometry=geometry)
 
-# Load a Tasmania map (or Australia map) using GeoPandas
-world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
-
-# Filter for Australia (Tasmania included)
-australia = world[world.name == "Australia"]
-
 # Plot Tasmania with the heatmap-like effect
-fig3, ax3 = plt.subplots(figsize=(10, 10))
+fig3, ax = plt.subplots(figsize=(10, 10))
 
 # Plot Australia for context
-australia.plot(ax=ax3, color='lightgrey')
+australia.plot(ax=ax, color='lightgrey')
 
 # Create a heatmap using Seaborn on the latitude and longitude points
-sns.kdeplot(df['Longitude'], df['Latitude'], cmap="Blues", shade=True, bw_adjust=0.5, ax=ax3)
+sns.kdeplot(df['Longitude'], df['Latitude'], cmap="Blues", shade=True, bw_adjust=0.5, ax=ax)
 
 # Plot the points with their intensities
-gdf.plot(ax=ax3, markersize=gdf['Sessions'] * 50, color='red', alpha=0.5)
+gdf.plot(ax=ax, markersize=gdf['Sessions'] * 50, color='red', alpha=0.5)
 
 # Set title and labels
-ax3.set_title("Tasmania Heatmap Based on Sessions")
-ax3.set_xlabel("Longitude")
-ax3.set_ylabel("Latitude")
+plt.title("Tasmania Heatmap Based on Sessions")
+plt.xlabel("Longitude")
+plt.ylabel("Latitude")
 
 # Display the Tasmania heatmap using Streamlit
 st.pyplot(fig3)
