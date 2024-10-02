@@ -34,8 +34,6 @@ average_bounce_rate = np.mean(bounce_rates)
 # Create the second graph
 fig2, ax2 = plt.subplots(figsize=(8, 6))
 ax2.plot(quarters, bounce_rates, marker='o', linestyle='-', color='b')
-ax2.axhline(y=median_bounce_rate, color='r', linestyle='--', label=f'Median: {int(median_bounce_rate)}')
-ax2.axhline(y=average_bounce_rate, color='g', linestyle='-', label=f'Average: {int(average_bounce_rate)}')
 ax2.set_ylim(0, max(bounce_rates) + 10)
 ax2.set_title('Bounce Rate Over Quarters in 2024', fontsize=14)
 ax2.set_xlabel('Quarter', fontsize=12)
