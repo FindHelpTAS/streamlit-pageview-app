@@ -45,3 +45,145 @@ ax2.legend()
 st.pyplot(fig1)  # Display the first graph
 st.pyplot(fig2)  # Display the second graph
 
+import streamlit as st
+import streamlit.components.v1 as components
+
+# Embed your HTML and JavaScript code in a string
+html_code = '''
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Maps Heatmap and Markers with Reverse Geocoding</title>
+    <script>
+        let map, heatmap;
+
+        // Callback function to initialize the map after the script has loaded
+        function initMap() {
+            map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 6,
+                center: { lat: -41.4388, lng: 147.1347 }, // Centered on Tasmania
+                mapTypeId: "terrain",
+            });
+
+            // Create and add a legend for the heatmap
+            const legend = document.getElementById("legend");
+            map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
+
+            // Fetch the CSV data (replace this with your actual file path or API)
+            fetch('Cleaned_Council_Mapping.csv')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok ' + response.statusText);
+                    }
+                    return response.text();
+                })
+                .then(csvData => {
+                    const parsedData = parseCSV(csvData);
+                    createHeatmap(parsedData);
+                    createMarkers(parsedData);
+                })
+                .catch(error => console.error('Error fetching CSV data:', error));
+        }
+
+        // Parse CSV Data
+        function parseCSV(csvData) {
+            const rows = csvData.trim().split('\\n').slice(1); // Skip header row
+            const locations = rows.map(row => {
+                const [lat, lng, sessions] = row.split(',');
+                return {
+                    lat: parseFloat(lat),
+                    lng: parseFloat(lng),
+                    sessions: parseInt(sessions),
+                };
+            });
+            return locations;
+        }
+
+        // Heatmap Layer
+        function createHeatmap(locations) {
+            const heatmapData = locations.map(location => ({
+                location: new google.maps.LatLng(location.lat, location.lng),
+                weight: location.sessions,
+            }));
+            heatmap = new google.maps.visualization.HeatmapLayer({
+                data: heatmapData,
+                radius: 70, // Adjust radius to better visualize smaller points
+                opacity: 0.7,
+                gradient: [
+                    'rgba(239,251,16,0)',
+                    'rgba(241,221,14,1)',
+                    'rgba(243,194,13,1)',
+                    'rgba(244,174,12,1)',
+                    'rgba(245,159,11,1)',
+                    'rgba(246,139,10,1)',
+                    'rgba(247,124,9,1)',
+                    'rgba(248,107,8,1)',
+                    'rgba(249,90,7,1)',
+                    'rgba(250,75,6,1)',
+                    'rgba(251,55,5,1)',
+                    'rgba(252,40,4,1)',
+                    'rgba(253,30,4,1)',
+                    'rgba(253,18,4,1)',
+                    'rgba(253,13,4,1)',
+                    'rgba(254,3,3,1)',
+                ],
+                map: map,
+            });
+        }
+    </script>
+    <style>
+        #map {
+            height: 500px;
+            width: 100%;
+        }
+
+        #legend {
+            background: white;
+            padding: 10px;
+            margin: 10px;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        #legend .title {
+            margin-bottom: 5px;
+        }
+
+        #legend .gradient {
+            background: linear-gradient(to right, rgb(239, 251, 16), rgba(254, 3, 3, 1));
+            height: 15px;
+            width: 200px;
+            margin-bottom: 5px;
+        }
+
+        #legend .scale {
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+
+    <!-- Legend for Heatmap -->
+    <div id="legend">
+        <div class="title">Heatmap Intensity</div>
+        <div class="gradient"></div>
+        <div class="scale">
+            <span>1</span>
+            <span>12,000</span>
+        </div>
+    </div>
+
+    <!-- Load the Google Maps JavaScript API asynchronously -->
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJDGu-1xitUVcPe7Hgo412Rjik-9hO7qc&libraries=visualization&callback=initMap"
+        async defer></script>
+</body>
+</html>
+'''
+
+# Use Streamlit to render the HTML
+components.html(html_code, height=600)
