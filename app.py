@@ -163,10 +163,14 @@ fig3, ax = plt.subplots(figsize=(10, 10))
 australia.plot(ax=ax, color='lightgrey')
 
 # Create a heatmap using Seaborn on the latitude and longitude points
-sns.kdeplot(x=df['Longitude'], y=df['Latitude'], cmap="Blues", shade=True, bw_adjust=0.5, ax=ax)
+sns.kdeplot(x=df['Longitude'], y=df['Latitude'], cmap="Blues", fill=True, bw_adjust=0.5, ax=ax)
 
 # Plot the points with their intensities
 gdf.plot(ax=ax, markersize=gdf['Sessions'] * 50, color='red', alpha=0.5)
+
+# Set axis limits to focus on Tasmania
+ax.set_xlim(143, 149)   # Longitude range for Tasmania
+ax.set_ylim(-44, -39)   # Latitude range for Tasmania
 
 # Set title and labels
 plt.title("Tasmania Heatmap Based on Sessions")
