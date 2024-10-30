@@ -157,7 +157,7 @@ geometry = [Point(xy) for xy in zip(df['Longitude'], df['Latitude'])]
 gdf = gpd.GeoDataFrame(df, geometry=geometry)
 
 # Plot Tasmania with the heatmap-like effect
-fig3, ax = plt.subplots(figsize=(100, 100))
+fig3, ax = plt.subplots(figsize=(10, 10))
 
 # Plot Australia for context
 australia.plot(ax=ax, color='lightgrey')
